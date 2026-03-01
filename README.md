@@ -1,141 +1,74 @@
-# 孝心圈官方网站
+# Expo App + Express.js
 
-这是一个基于 HTML、CSS 的响应式官方网站，包含以下页面：
+## 目录结构规范（严格遵循）
 
-- **首页** (`index.html`) - 介绍孝心圈的核心功能和数据
-- **功能概述** (`overview.html`) - 详细介绍应用的功能特性
-- **下载应用** (`download.html`) - 提供应用的下载链接和安装指南
-- **赞助支持** (`sponsor.html`) - 赞助方式和权益说明
-- **关于我们** (`about.html`) - 团队介绍和价值观
+当前仓库是一个 monorepo（基于 pnpm 的 workspace）
 
-## 部署方法
+- Expo 代码在 client 目录，Express.js 代码在 server 目录
+- 本模板默认无 Tab Bar，可按需改造
 
-### 方法 1：使用 Nginx 托管
+目录结构说明
 
-1. 将文件复制到 Nginx 网站目录：
+├── server/                     # 服务端代码根目录 (Express.js)
+|   ├── src/
+│   │   └── index.ts            # Express 入口文件
+|   └── package.json            # 服务端 package.json
+├── client/                     # React Native 前端代码
+│   ├── app/                    # Expo Router 路由目录（仅路由配置）
+│   │   ├── _layout.tsx         # 根布局文件（必需，务必阅读）
+│   │   ├── home.tsx            # 首页
+│   │   └── index.tsx           # re-export home.tsx
+│   ├── screens/                # 页面实现目录（与 app/ 路由对应）
+│   │   └── demo/               # demo 示例页面
+│   │       ├── index.tsx       # 页面组件实现
+│   │       └── styles.ts       # 页面样式
+│   ├── components/             # 可复用组件
+│   │   └── Screen.tsx          # 页面容器组件（必用）
+│   ├── hooks/                  # 自定义 Hooks
+│   ├── contexts/               # React Context 代码
+│   ├── constants/              # 常量定义（如主题配置）
+│   ├── utils/                  # 工具函数
+│   ├── assets/                 # 静态资源
+|   └── package.json            # Expo 应用 package.json
+├── package.json
+├── .cozeproj                   # 预置脚手架脚本（禁止修改）
+└── .coze                       # 配置文件（禁止修改）
+
+## 安装依赖
+
+### 命令
+
 ```bash
-mkdir -p /www/wwwroot/xiaoxinqu
-cp -r /workspace/projects/official-website/* /www/wwwroot/xiaoxinqu/
+pnpm i
 ```
 
-2. 配置 Nginx：
-```nginx
-server {
-    listen 8081;
-    server_name xiaoxinqu.example.com;
+### 新增依赖约束
 
-    root /www/wwwroot/xiaoxinqu;
-    index index.html;
+如果需要新增依赖，需在 client 和 server 各自的目录添加（原因：隔离前后端的依赖），禁止在根目录直接安装依赖
 
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
+### 新增依赖标准流程
+
+- 编辑 `client/package.json` 或 `server/package.json`
+- 在根目录执行 `pnpm i`
+
+## Expo 开发规范
+
+### 路径别名
+
+Expo 配置了 `@/` 路径别名指向 `client/` 目录：
+
+```tsx
+// 正确
+import { Screen } from '@/components/Screen';
+
+// 避免相对路径
+import { Screen } from '../../../components/Screen';
 ```
 
-3. 重启 Nginx：
+## 本地开发
+
+运行 coze dev 可以同时启动前端和后端服务，如果端口已占用，该命令会先杀掉占用端口的进程再启动，也可以用来重启前端和后端服务
+
 ```bash
-nginx -t
-nginx -s reload
+coze dev
 ```
-
-### 方法 2：使用 Docker
-
-1. 创建 Dockerfile：
-```dockerfile
-FROM nginx:alpine
-COPY . /usr/share/nginx/html
-EXPOSE 80
-```
-
-2. 构建并运行：
-```bash
-cd /workspace/projects/official-website
-docker build -t xiaoxinqu-web .
-docker run -d -p 8081:80 --name xiaoxinqu-web xiaoxinqu-web
-```
-
-### 方法 3：使用 Apache
-
-1. 将文件复制到 Apache 网站目录：
-```bash
-mkdir -p /var/www/html/xiaoxinqu
-cp -r /workspace/projects/official-website/* /var/www/html/xiaoxinqu/
-```
-
-2. 配置 Apache：
-```apache
-<VirtualHost *:80>
-    ServerName xiaoxinqu.example.com
-    DocumentRoot /var/www/html/xiaoxinqu
-
-    <Directory /var/www/html/xiaoxinqu>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-```
-
-3. 重启 Apache：
-```bash
-systemctl restart httpd
-```
-
-## 访问地址
-
-部署完成后，可以通过以下地址访问：
-- 本地测试：`http://localhost:8081`
-- 服务器：`http://47.98.128.159:8081`
-
-## 自定义配置
-
-### 修改下载链接
-
-编辑 `download.html`，修改 APK 下载链接：
-```html
-<a href="你的APK下载链接" class="btn btn-primary btn-large">
-  下载 APK
-</a>
-```
-
-### 修改联系信息
-
-编辑所有页面，修改邮箱和电话：
-```html
-<li>邮箱: your-email@example.com</li>
-<li>电话: 400-XXX-XXXX</li>
-```
-
-### 修改颜色主题
-
-编辑 `css/style.css`，修改 CSS 变量：
-```css
-:root {
-  --primary-color: #FF6B6B;  /* 主色调 */
-  --secondary-color: #4ECDC4;  /* 次要色调 */
-}
-```
-
-## 浏览器支持
-
-- Chrome (推荐)
-- Firefox
-- Safari
-- Edge
-- 移动端浏览器（响应式设计）
-
-## 特性
-
-- ✅ 响应式设计，支持移动端和桌面端
-- ✅ 现代化的 UI 设计
-- ✅ 清晰的导航结构
-- ✅ 完整的功能介绍
-- ✅ 详细的下载指南
-- ✅ 赞助支持页面
-- ✅ 团队介绍
-- ✅ 无需后端，纯静态网站
-- ✅ 快速加载，SEO 友好
-
-## 许可证
-
-© 2024 孝心圈. 保留所有权利.
